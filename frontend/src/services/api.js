@@ -2,6 +2,12 @@
  * Centralized API client with automatic token refresh and credential support
  */
 
+export const API_BASE_URL = (
+    import.meta.env.VITE_API_URL ||
+    import.meta.env.VITE_BACKEND_URL ||
+    'https://social-media-app-sslg.onrender.com'
+).replace(/\/$/, '');
+
 let isRefreshing = false;
 let refreshSubscribers = [];
 
@@ -12,6 +18,15 @@ const subscribeTokenRefresh = (cb) => {
 const onRefreshed = () => {
     refreshSubscribers.forEach((cb) => cb());
     refreshSubscribers = [];
+};
+
+export const getFullApiUrl = (endpoint) => {
+    if (!endpoint) return API_BASE_URL;
+    if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+        return endpoint;
+    }
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    return `${API_BASE_URL}${cleanEndpoint}`;
 };
 
 export const apiFetch = async (url, options = {}) => {
@@ -30,17 +45,22 @@ export const apiFetch = async (url, options = {}) => {
         config.body = JSON.stringify(config.body);
     }
 
-    let response = await fetch(url, config);
+    const targetUrl = getFullApiUrl(url);
+
+    let response = await fetch(targetUrl, config);
 
     // If unauthorized and not already refreshing or attempting login/signup
-    const isAuthRoute = url.includes('/login') || url.includes('/signup') || url.includes('/refresh-token');
+    const isAuthRoute =
+        targetUrl.includes('/login') ||
+        targetUrl.includes('/signup') ||
+        targetUrl.includes('/refresh-token');
 
     if (response.status === 401 && !isAuthRoute) {
         if (!isRefreshing) {
             isRefreshing = true;
 
             try {
-                const refreshRes = await fetch('/api/users/refresh-token', {
+                const refreshRes = await fetch(getFullApiUrl('/api/users/refresh-token'), {
                     method: 'POST',
                     credentials: 'include'
                 });
@@ -49,7 +69,7 @@ export const apiFetch = async (url, options = {}) => {
                     isRefreshing = false;
                     onRefreshed();
                     // Retry original request
-                    return await fetch(url, config);
+                    return await fetch(targetUrl, config);
                 } else {
                     isRefreshing = false;
                     refreshSubscribers = [];
@@ -69,7 +89,7 @@ export const apiFetch = async (url, options = {}) => {
         // Wait for token refresh to complete then retry
         return new Promise((resolve) => {
             subscribeTokenRefresh(async () => {
-                resolve(await fetch(url, config));
+                resolve(await fetch(targetUrl, config));
             });
         });
     }

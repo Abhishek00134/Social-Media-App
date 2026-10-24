@@ -8,12 +8,12 @@ export default defineConfig({
         port: 5173,
         proxy: {
             '/api': {
-                target: 'http://localhost:3000',
+                target: 'https://social-media-app-sslg.onrender.com',
                 changeOrigin: true,
                 secure: false
             },
             '/socket.io': {
-                target: 'http://localhost:3000',
+                target: 'https://social-media-app-sslg.onrender.com',
                 ws: true,
                 changeOrigin: true,
                 secure: false

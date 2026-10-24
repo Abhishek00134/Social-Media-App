@@ -85,7 +85,10 @@ export const SocketProvider = ({ children }) => {
         fetchInitialUnreadCounts();
 
         // Connect to Socket.IO backend
-        const socketUrl = import.meta.env.VITE_BACKEND_URL || window.location.origin;
+        const socketUrl =
+            import.meta.env.VITE_BACKEND_URL ||
+            import.meta.env.VITE_API_URL ||
+            'https://social-media-app-sslg.onrender.com';
         const newSocket = io(socketUrl, {
             query: {
                 userId: user._id
