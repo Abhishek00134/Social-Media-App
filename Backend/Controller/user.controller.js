@@ -22,8 +22,8 @@ const generateAccessAndRefreshTokens = async (userId, res) => {
 
     const cookieOptions = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict'
+        secure: true,
+        sameSite: 'none'
     };
 
     // Set cookies: accessToken (1 day) and refreshToken (30 days)
@@ -140,8 +140,8 @@ export const logoutUser = async (req, res) => {
 
         const cookieOptions = {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: true,
+            sameSite: 'none',
             expires: new Date(0)
         };
 
@@ -175,8 +175,8 @@ export const refreshAccessToken = async (req, res) => {
 
         res.cookie('accessToken', newAccessToken, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            secure: true,
+            sameSite: 'none',
             maxAge: 24 * 60 * 60 * 1000
         });
 
