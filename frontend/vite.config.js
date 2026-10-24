@@ -8,12 +8,12 @@ export default defineConfig({
         port: 5173,
         proxy: {
             '/api': {
-                target: 'https://social-media-app-sslg.onrender.com',
+                target: 'https://social-media-app-klec.onrender.com',
                 changeOrigin: true,
                 secure: false
             },
             '/socket.io': {
-                target: 'https://social-media-app-sslg.onrender.com',
+                target: 'https://social-media-app-klec.onrender.com',
                 ws: true,
                 changeOrigin: true,
                 secure: false

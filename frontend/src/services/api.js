@@ -5,7 +5,7 @@
 export const API_BASE_URL = (
     import.meta.env.VITE_API_URL ||
     import.meta.env.VITE_BACKEND_URL ||
-    'https://social-media-app-sslg.onrender.com'
+    'https://social-media-app-klec.onrender.com'
 ).replace(/\/$/, '');
 
 let isRefreshing = false;
