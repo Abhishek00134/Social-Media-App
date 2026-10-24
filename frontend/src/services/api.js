@@ -2,11 +2,7 @@
  * Centralized API client with automatic token refresh and credential support
  */
 
-export const API_BASE_URL = (
-    import.meta.env.VITE_API_URL ||
-    import.meta.env.VITE_BACKEND_URL ||
-    'https://social-media-app-klec.onrender.com'
-).replace(/\/$/, '');
+export const API_BASE_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
 
 let isRefreshing = false;
 let refreshSubscribers = [];
@@ -21,12 +17,12 @@ const onRefreshed = () => {
 };
 
 export const getFullApiUrl = (endpoint) => {
-    if (!endpoint) return API_BASE_URL;
+    if (!endpoint) return '';
     if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
         return endpoint;
     }
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    return `${API_BASE_URL}${cleanEndpoint}`;
+    return API_BASE_URL ? `${API_BASE_URL}${cleanEndpoint}` : cleanEndpoint;
 };
 
 export const apiFetch = async (url, options = {}) => {
@@ -55,7 +51,7 @@ export const apiFetch = async (url, options = {}) => {
         targetUrl.includes('/signup') ||
         targetUrl.includes('/refresh-token');
 
-    if (response.status === 401 && !isAuthRoute) {
+    if (response.status === 401 && !isAuthRoute && !options.skipAuthRefresh) {
         if (!isRefreshing) {
             isRefreshing = true;
 
@@ -68,7 +64,7 @@ export const apiFetch = async (url, options = {}) => {
                 if (refreshRes.ok) {
                     isRefreshing = false;
                     onRefreshed();
-                    // Retry original request
+                    // Retry original request with newly issued cookie
                     return await fetch(targetUrl, config);
                 } else {
                     isRefreshing = false;

@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
     // Verify authentication status on initial app load
     const checkAuth = async () => {
         try {
-            const res = await apiFetch('/api/users/profile');
+            const res = await apiFetch('/api/users/profile', { skipAuthRefresh: true });
 
             if (res.ok) {
                 const data = await res.json();
