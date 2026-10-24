@@ -12,7 +12,7 @@ const app = express();
 
 app.use(
     cors({
-        origin: (origin, callback) => callback(null, true),
+        origin: 'https://pulsechat-realtime.netlify.app',
         credentials: true
     })
 );
