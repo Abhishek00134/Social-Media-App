@@ -85,14 +85,44 @@ export const ProfilePage = () => {
     const [customStyle, setCustomStyle] = useState('bottts');
     const [savingCharacter, setSavingCharacter] = useState(false);
 
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deletingAccount, setDeletingAccount] = useState(false);
+
     const showNotification = (msg) => {
         setFeedbackMsg(msg);
         setTimeout(() => setFeedbackMsg(''), 3000);
     };
 
     const handleLogout = async () => {
-        await logout();
-        navigate('/login');
+        try {
+            await logout();
+            navigate('/login');
+        } catch (err) {
+            console.error('Error logging out:', err);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        setDeletingAccount(true);
+        try {
+            const res = await apiFetch('/api/users/account', {
+                method: 'DELETE'
+            });
+
+            if (res.ok) {
+                await logout();
+                navigate('/signup');
+            } else {
+                const data = await res.json().catch(() => ({}));
+                alert(data.message || 'Failed to delete account. Please try again.');
+            }
+        } catch (err) {
+            console.error('Error deleting account:', err);
+            alert('A connection error occurred while deleting your account.');
+        } finally {
+            setDeletingAccount(false);
+            setIsDeleteModalOpen(false);
+        }
     };
 
     // Save Bio to Backend
@@ -571,14 +601,19 @@ export const ProfilePage = () => {
                             </div>
                         </div>
 
-                        {/* Sign Out Section */}
-                        <div className="profile-logout-card">
+                        {/* Delete Account Section */}
+                        <div className="profile-logout-card profile-delete-card">
                             <div>
-                                <h4>Signing Out</h4>
-                                <p>You can sign back in anytime with your email.</p>
+                                <h4 style={{ color: '#ef4444' }}>Delete Account</h4>
+                                <p>Permanently remove your profile, posts, messages, and all data.</p>
                             </div>
-                            <button onClick={handleLogout} className="btn-logout-danger">
-                                Sign Out
+                            <button
+                                type="button"
+                                onClick={() => setIsDeleteModalOpen(true)}
+                                className="btn-logout-danger"
+                                style={{ background: '#dc2626' }}
+                            >
+                                Delete Account
                             </button>
                         </div>
                     </div>
@@ -728,6 +763,43 @@ export const ProfilePage = () => {
                             >
                                 {savingCharacter ? 'Applying Character...' : 'Apply Character to Profile'}
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Account Confirmation Modal */}
+            {isDeleteModalOpen && (
+                <div className="char-modal-backdrop" onClick={() => !deletingAccount && setIsDeleteModalOpen(false)}>
+                    <div className="char-modal-card" style={{ maxWidth: '440px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                        <div style={{ padding: '24px 20px' }}>
+                            <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>⚠️</div>
+                            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '8px' }}>
+                                Delete Account Permanently?
+                            </h3>
+                            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '20px' }}>
+                                This action is <strong>irreversible</strong>. All your posts, photos, stories, chats, friends, and profile data will be permanently wiped from PulseChat.
+                            </p>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                                <button
+                                    type="button"
+                                    className="btn btn-secondary"
+                                    disabled={deletingAccount}
+                                    onClick={() => setIsDeleteModalOpen(false)}
+                                    style={{ padding: '9px 18px', borderRadius: 'var(--radius-md)' }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    className="btn-logout-danger"
+                                    disabled={deletingAccount}
+                                    onClick={handleDeleteAccount}
+                                    style={{ padding: '9px 20px', borderRadius: 'var(--radius-md)', background: '#dc2626' }}
+                                >
+                                    {deletingAccount ? 'Deleting...' : 'Yes, Delete My Account'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

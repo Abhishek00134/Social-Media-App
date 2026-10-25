@@ -8,7 +8,8 @@ const userSocketMap = new Map();
 export const initSocket = (httpServer) => {
     io = new Server(httpServer, {
         cors: {
-            origin: 'https://pulsechat-realtime.netlify.app',
+            // origin: 'https://pulsechat-realtime.netlify.app',
+            origin: process.env.CLIENT_URL,
             methods: ['GET', 'POST', 'PUT', 'DELETE'],
             credentials: true
         },

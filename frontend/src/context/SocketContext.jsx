@@ -86,9 +86,7 @@ export const SocketProvider = ({ children }) => {
 
         // Connect to Socket.IO backend
         const socketUrl =
-            import.meta.env.VITE_BACKEND_URL ||
-            import.meta.env.VITE_API_URL ||
-            'https://social-media-app-klec.onrender.com';
+            import.meta.env.VITE_BACKEND_URL;
         const newSocket = io(socketUrl, {
             query: {
                 userId: user._id

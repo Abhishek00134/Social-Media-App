@@ -17,7 +17,8 @@ import {
     getFriends,
     getFriendRequests,
     getUserById,
-    removeProfilePhoto
+    removeProfilePhoto,
+    deleteUserAccount
 } from '../Controller/user.controller.js';
 import { protectRoute } from '../middleware/auth.middleware.js';
 
@@ -29,11 +30,12 @@ router.post('/login', loginUser);
 router.post('/logout', logoutUser);
 router.post('/refresh-token', refreshAccessToken);
 
-// Profile and privacy
+// Profile, privacy, and account
 router.get('/profile', protectRoute, getUserProfile);
 router.put('/profile', protectRoute, updateUserProfile);
 router.delete('/profile-photo', protectRoute, removeProfilePhoto);
 router.put('/privacy', protectRoute, updatePrivacy);
+router.delete('/account', protectRoute, deleteUserAccount);
 
 // User discovery & Friends (Static routes MUST precede /:userId)
 router.get('/search', protectRoute, searchUsers);

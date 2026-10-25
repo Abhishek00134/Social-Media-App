@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
 import userModel from '../models/user.js';
 import notificationModel from '../models/notification.js';
+import postModel from '../models/post.js';
+import storyModel from '../models/story.js';
+import messageModel from '../models/message.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { uploadToCloudinary } from '../config/cloudinary.js';
@@ -655,5 +658,81 @@ export const getFriendRequests = async (req, res) => {
     } catch (error) {
         console.error('Error in getFriendRequests:', error);
         return res.status(500).json({ message: 'Internal server error' });
+    }
+};
+
+// Permanently delete user account and all associated data
+export const deleteUserAccount = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // 1. Delete all posts authored by this user
+        await postModel.deleteMany({ author: userId });
+
+        // 2. Remove user likes, dislikes, and comments from other posts
+        await postModel.updateMany(
+            {},
+            {
+                $pull: {
+                    likes: userId,
+                    dislikes: userId,
+                    comments: { author: userId }
+                }
+            }
+        );
+
+        // 3. Delete all stories authored by this user
+        await storyModel.deleteMany({ author: userId });
+
+        // 4. Remove user from story viewers and reactions
+        await storyModel.updateMany(
+            {},
+            {
+                $pull: {
+                    viewers: userId,
+                    reactions: { user: userId }
+                }
+            }
+        );
+
+        // 5. Delete all messages sent or received by this user
+        await messageModel.deleteMany({
+            $or: [{ senderId: userId }, { receiverId: userId }]
+        });
+
+        // 6. Delete all notifications sent to or from this user
+        await notificationModel.deleteMany({
+            $or: [{ recipient: userId }, { sender: userId }]
+        });
+
+        // 7. Remove user from friends, friendRequests, and sentRequests of all other users
+        await userModel.updateMany(
+            {},
+            {
+                $pull: {
+                    friends: userId,
+                    friendRequests: { from: userId },
+                    sentRequests: { to: userId }
+                }
+            }
+        );
+
+        // 8. Delete user record
+        await userModel.findByIdAndDelete(userId);
+
+        // 9. Clear auth cookies
+        const cookieOptions = {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none',
+            expires: new Date(0)
+        };
+        res.cookie('accessToken', '', cookieOptions);
+        res.cookie('refreshToken', '', cookieOptions);
+
+        return res.status(200).json({ message: 'User account and associated data permanently deleted successfully' });
+    } catch (error) {
+        console.error('Error in deleteUserAccount:', error);
+        return res.status(500).json({ message: 'Internal server error deleting account' });
     }
 };
